@@ -1,0 +1,57 @@
+﻿trigger:
+  branches:
+    include: [main, 'release/*']
+
+pr:
+  branches:
+    include: [main]
+
+pool:
+  vmImage: windows-latest
+
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildAndTest
+        steps:
+          - checkout: self
+
+          - task: PowerShell@2
+            displayName: Install BcContainerHelper
+            inputs:
+              targetType: inline
+              script: Install-Module BcContainerHelper -Force -AllowClobber
+
+          - task: PowerShell@2
+            displayName: Compile AL Extension
+            inputs:
+              targetType: inline
+              script: |
+                Import-Module BcContainerHelper
+                $compiler = Get-AlCompilerPath
+                & $compiler /packagecachepath:".alpackages" /out:"output/extension.app" /project:"."
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: output
+              artifactName: BCExtension
+
+  - stage: Publish
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployToDev
+        environment: BC-Dev
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: PowerShell@2
+                  displayName: Publish to BC
+                  inputs:
+                    targetType: inline
+                    script: |
+                      Import-Module BcContainerHelper
+                      Publish-BcContainerApp -containerName "bc-dev" `
+                        -appFile "$(Pipeline.Workspace)/BCExtension/extension.app" `
+                        -skipVerification

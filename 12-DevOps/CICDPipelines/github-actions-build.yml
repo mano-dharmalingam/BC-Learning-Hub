@@ -1,0 +1,31 @@
+﻿name: Build BC Extension
+
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install BcContainerHelper
+        shell: pwsh
+        run: Install-Module BcContainerHelper -Force -AllowClobber
+
+      - name: Compile AL Extension
+        shell: pwsh
+        run: |
+          Import-Module BcContainerHelper
+          $compiler = Get-AlCompilerPath
+          & $compiler /packagecachepath:".alpackages" /out:"output/extension.app" /project:"."
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bc-extension
+          path: output/*.app
+          retention-days: 30

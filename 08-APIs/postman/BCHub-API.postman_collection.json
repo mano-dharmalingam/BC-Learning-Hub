@@ -1,0 +1,28 @@
+﻿{
+  "info": { "name": "BC-Learning-Hub API Collection", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "variable": [
+    {"key": "baseUrl", "value": "https://api.businesscentral.dynamics.com/v2.0/{{tenantId}}/{{environment}}"},
+    {"key": "publisher", "value": "bcHub"},
+    {"key": "group", "value": "fleet"},
+    {"key": "version", "value": "v1.0"}
+  ],
+  "item": [
+    {
+      "name": "GET - List Vehicles",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/{{publisher}}/{{group}}/{{version}}/companies({{companyId}})/vehicles" }
+    },
+    {
+      "name": "POST - Create Vehicle",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": { "mode": "raw", "raw": "{\"vehicleNo\": \"VH-100\", \"description\": \"Ford Transit\"}" },
+        "url": "{{baseUrl}}/api/{{publisher}}/{{group}}/{{version}}/companies({{companyId}})/vehicles"
+      }
+    },
+    {
+      "name": "GET - Customers (Standard BC API)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/v2.0/companies({{companyId}})/customers?$top=10" }
+    }
+  ]
+}
